@@ -1,0 +1,13 @@
+body .student-tools .identity-fields {
+  grid-template-columns: minmax(235px, 285px);
+}
+body .student-tools .identity-fields #studentName {
+  width: 100%;
+  min-width: 0;
+  height: 39px;
+}
+@media (max-width: 390px) {
+  body .student-tools .identity-fields {
+    grid-template-columns: minmax(200px, 1fr);
+  }
+}
