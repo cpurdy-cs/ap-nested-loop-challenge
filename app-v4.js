@@ -231,28 +231,66 @@ function askConfirm(title,message,action,yes='Confirm'){
  $('confirmCancel').focus();
 }
 function tutorialPage(){
- tutorial.innerHTML='<div class="small">LEARN · EXPERIMENT · DISCOVER</div><h2>Nested loops, one step at a time.</h2><p class="muted" style="max-width:820px">A nested loop is a loop inside another loop. The <strong>outer loop</strong> determines how many rows are printed. For every single outer-loop iteration, the <strong>inner loop</strong> runs from its beginning, creating the characters on that row. A println() after the inner loop moves to the next line.</p><div class="tutorial-grid"><div class="card"><div class="bar"><h3>Experiment sandbox</h3><span class="badge">No points · No penalties</span></div><p class="muted">Try the presets, then change any of the seven dropdowns. Every change runs the loops immediately.</p><div class="actions" id="presets"><button data-preset="rectangle">Rectangle</button><button data-preset="triangle">Growing triangle</button><button data-preset="numbers">Numbers</button><button data-preset="odd">Odd widths</button></div><div class="code sandbox-code"><div class="line">for (int row = <span id="sandboxOuterStart"></span>; <span id="sandboxOuterCond"></span>; <span id="sandboxOuterUp"></span>) {</div><div class="line">    for (int col = <span id="sandboxInnerStart"></span>; <span id="sandboxInnerCond"></span>; <span id="sandboxInnerUp"></span>) {</div><div class="line">        System.out.print(<span id="sandboxPrint"></span>);</div><div class="line">    }</div><div class="line">    System.out.println();</div><div class="line">}</div></div><div class="card"><div class="bar"><h3>See what happens</h3><span class="badge">Live output</span></div><div class="caption">OUTPUT</div><div class="screen" id="sandboxOutput"></div><div class="feedback" id="sandboxExplanation">Change the outer bound to change the number of rows, or the inner bound to change each row’s width.</div><div class="tutorial-notes"><p><strong>Try these experiments:</strong></p><ol><li>Change <code>row <= 3</code> to <code>row <= 5</code>.</li><li>Change <code>col <= 5</code> to <code>col <= row</code>.</li><li>Try printing <code>row</code> or <code>col</code> instead of a star.</li><li>Try an increment of <code>+= 2</code>. What disappears?</li></ol></div></div></div><div class="actions" style="justify-content:flex-end;margin-top:22px"><button class="primary" id="begin">Start the 27 challenges →</button></div>';
+ // The tutorial is built once. Returning from challenges must not discard student experiments.
+ if(tutorial.dataset.ready==='yes')return;
+ tutorial.dataset.ready='yes';
+ tutorial.innerHTML=`
+  <div class="small">LEARN · EXPERIMENT · DISCOVER</div>
+  <h2>Nested loops, one step at a time.</h2>
+  <p class="muted tutorial-intro">A nested loop is a loop inside another loop. The <strong>outer loop</strong> determines how many rows are printed. For every outer-loop iteration, the <strong>inner loop</strong> starts again. A println() after the inner loop moves to the next line.</p>
+  <div class="sandbox-tabs" role="group" aria-label="Sandbox mode">
+    <button type="button" data-mode="basic">Basic loops</button>
+    <button type="button" data-mode="spaces">Two inner loops + spaces</button>
+    <button type="button" data-mode="conditionals">Conditionals</button>
+    <button type="button" data-mode="typed">Type Java</button>
+  </div>
+  <div id="sandboxLayout" class="tutorial-grid">
+    <section class="card sandbox-editor-card" aria-label="Sandbox code and controls">
+      <div id="basicSandbox" class="sandbox-mode-panel">
+        <div class="bar"><h3>Experiment sandbox</h3><span class="badge">No points · No penalties</span></div>
+        <p class="muted">Try a preset, then change any dropdown. The output and trace update together.</p>
+        <div class="actions" id="presets"><button data-preset="rectangle">Rectangle</button><button data-preset="triangle">Growing triangle</button><button data-preset="numbers">Numbers</button><button data-preset="odd">Odd widths</button></div>
+        <div class="code sandbox-code" aria-label="Java code with selectable loop expressions">
+          <div class="line" data-source-line="1">for (int row = <span id="sandboxOuterStart"></span>; <span id="sandboxOuterCond"></span>; <span id="sandboxOuterUp"></span>) {</div>
+          <div class="line" data-source-line="2">    for (int col = <span id="sandboxInnerStart"></span>; <span id="sandboxInnerCond"></span>; <span id="sandboxInnerUp"></span>) {</div>
+          <div class="line" data-source-line="3">        System.out.print(<span id="sandboxPrint"></span>);</div>
+          <div class="line" data-source-line="4">    }</div>
+          <div class="line" data-source-line="5">    System.out.println();</div>
+          <div class="line" data-source-line="6">}</div>
+        </div>
+        <div class="tutorial-notes"><strong>Try these experiments:</strong> change the row bound, change the column bound to <code>col &lt;= row</code>, print a number, or try <code>+= 2</code>.</div>
+      </div>
+      <div id="sandboxExtras"></div>
+    </section>
+    <section class="card sandbox-observer-card" aria-label="Step-through debugger and live output">
+      <div class="bar"><h3>Execution &amp; output</h3><span class="badge" id="stepCount" aria-live="polite"></span></div>
+      <div class="caption">STEP THROUGH EXECUTION</div>
+      <label class="space-toggle"><input id="spacesVisible" type="checkbox"> Show spaces as ·</label>
+      <div class="caption" id="stepOutputLabel">LIVE OUTPUT · FULL RESULT</div>
+      <div class="step-actions" role="group" aria-label="Step debugger controls"><button id="stepReset">↺ Restart</button><button id="stepBack">← Back</button><button class="primary" id="stepNext">Next step →</button><button id="stepEnd">Run to end</button></div>
+      <div class="screen" id="sandboxOutput" aria-live="polite"></div>
+      <div class="caption variable-caption">LOOP VARIABLES</div>
+      <div id="stepVariables" class="step-variables"></div>
+      <div id="stepAction" class="feedback" aria-live="polite"></div>
+      <div id="sandboxExplanation" class="muted sandbox-explanation"></div>
+    </section>
+  </div>
+  <div class="actions sandbox-return"><button class="primary" id="begin">Start the 27 challenges →</button></div>`;
  const items=[
   ['sandboxOuterStart',start,'1'],['sandboxOuterCond',outer,'row <= 3'],['sandboxOuterUp',updateRow,'row++'],
   ['sandboxInnerStart',start,'1'],['sandboxInnerCond',inner,'col <= 5'],['sandboxInnerUp',updateCol,'col++'],
   ['sandboxPrint',['"*"','"#"','"+"','row','col'],'"*"']
- ];items.forEach(([id,options,selected])=>$(id).innerHTML=select(options,selected,id));
- $('tutorial').querySelectorAll('select').forEach((x,i)=>x.onchange=()=>{if(i===2||i===5)syncSandboxDirections();runSandbox()});
+ ];
+ items.forEach(([id,options,selected])=>$(id).innerHTML=select(options,selected,id));
+ $('basicSandbox').querySelectorAll('select').forEach((x,i)=>x.onchange=()=>{if(i===2||i===5)syncSandboxDirections();runSandbox()});
  $('presets').querySelectorAll('button').forEach(b=>b.onclick=()=>setPreset(b.dataset.preset));
- $('begin').textContent=state.started?'← Back to challenges':'Start the 27 challenges →';
  $('begin').onclick=()=>{state.tutorial=false;state.started=true;save();render()};
- const tabs=document.createElement('div');tabs.className='sandbox-tabs';tabs.innerHTML='<button data-mode="basic">Basic loops</button><button data-mode="spaces">Two inner loops + spaces</button><button data-mode="conditionals">Conditionals</button><button data-mode="typed">Type Java</button>';
- tutorial.querySelector('.tutorial-grid').before(tabs);
- const extras=document.createElement('div');extras.id='sandboxExtras';tutorial.querySelector('.tutorial-grid').after(extras);
- const debuggerPanel=document.createElement('div');debuggerPanel.id='sandboxDebugger';debuggerPanel.className='integrated-tracer';
- debuggerPanel.innerHTML='<div class="caption">STEP THROUGH EXECUTION <span id="stepCount" aria-live="polite"></span></div><div class="step-actions"><button id="stepReset">↺ Restart</button><button id="stepBack">← Back</button><button class="primary" id="stepNext">Next step →</button><button id="stepEnd">Run to end</button></div><div class="caption">LOOP VARIABLES</div><div id="stepVariables" class="step-variables"></div><div id="stepAction" class="feedback" aria-live="polite"></div>';
- const sourcePanel=document.createElement('div');sourcePanel.id='stepSourceContainer';sourcePanel.className='inline-step-source hidden';sourcePanel.innerHTML='<div class="caption">EXECUTING JAVA · CURRENT LINE</div><pre id="stepSource" class="step-source"></pre>';
- tutorial.append(debuggerPanel,sourcePanel);
- $('stepReset').onclick=()=>{traceIndex=-1;drawTrace()};$('stepBack').onclick=()=>{traceIndex=Math.max(-1,traceIndex-1);drawTrace()};
- $('stepNext').onclick=()=>{traceIndex=Math.min(traceSteps.length-1,traceIndex+1);drawTrace()};$('stepEnd').onclick=()=>{traceIndex=traceSteps.length-1;drawTrace()};
- // Keep the return button outside the basic-only grid so all sandbox modes can exit.
- tutorial.append($('begin').parentElement);
- tabs.querySelectorAll('button').forEach(b=>b.onclick=()=>showSandboxMode(b.dataset.mode));
+ $('stepReset').onclick=()=>{traceIndex=-1;drawTrace()};
+ $('stepBack').onclick=()=>{traceIndex=Math.max(-1,traceIndex-1);drawTrace()};
+ $('stepNext').onclick=()=>{traceIndex=Math.min(traceSteps.length-1,traceIndex+1);drawTrace()};
+ $('stepEnd').onclick=()=>{traceIndex=traceSteps.length-1;drawTrace()};
+ $('spacesVisible').onchange=drawTrace;
+ tutorial.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>showSandboxMode(b.dataset.mode));
  showSandboxMode(state.sandboxMode);
 }
 function syncSandboxDirections(){
@@ -262,33 +300,64 @@ function syncSandboxDirections(){
 }
 function sandboxSource(){const ids=['sandboxOuterStart','sandboxOuterCond','sandboxOuterUp','sandboxInnerStart','sandboxInnerCond','sandboxInnerUp','sandboxPrint'];const a=ids.map(id=>$(id).querySelector('select').value);return 'for (int row = '+a[0]+'; '+a[1]+'; '+a[2]+') {\n    for (int col = '+a[3]+'; '+a[4]+'; '+a[5]+') {\n        System.out.print('+a[6]+');\n    }\n    System.out.println();\n}'}
 function runSandbox(){
- try{$('sandboxOutput').textContent=LoopEngine.execute(sandboxSource())||'(nothing printed)';$('sandboxExplanation').textContent='The outer loop repeats each row. The inner loop runs from the beginning for every row. Experiment freely!'}
- catch(e){$('sandboxOutput').textContent='[Loop stopped]';$('sandboxExplanation').textContent=e.message+' Try a different condition or increment.'}
- if(state.sandboxMode==='basic')resetTrace(sandboxSource());
+ // A single trace drives both the Live Output and the debugger (no divergent executions).
+ resetTrace(sandboxSource());
 }
 function setPreset(which){
  const a=which==='triangle'?['1','row <= 5','row++','1','col <= row','col++','"*"']:which==='numbers'?['1','row <= 5','row++','1','col <= row','col++','col']:which==='odd'?['1','row <= 5','row++','1','col <= 2 * row - 1','col++','"#"']:['1','row <= 3','row++','1','col <= 5','col++','"*"'];
  ['sandboxOuterStart','sandboxOuterCond','sandboxOuterUp','sandboxInnerStart','sandboxInnerCond','sandboxInnerUp','sandboxPrint'].forEach((id,i)=>$(id).querySelector('select').value=a[i]);syncSandboxDirections();runSandbox();
 }
-function showSandboxMode(mode){
- state.sandboxMode=mode;
- tutorial.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
- tutorial.querySelector('.tutorial-grid').classList.toggle('hidden',mode!=='basic');
- const panel=$('sandboxExtras');panel.innerHTML='';if(mode==='basic'){runSandbox();return}
- if(mode==='typed'){
-  panel.innerHTML='<div class="card"><div class="bar"><h3>Write and experiment with Java</h3><span class="badge">No penalties</span></div><p class="muted">Edit the code freely. Use Run to see its output. These are learning examples, not solutions to the final challenges.</p><div class="actions"><button data-code="triangle">Triangle</button><button data-code="aligned">Right-aligned triangle</button><button data-code="checker">Checkerboard</button><button data-code="blank">Blank editor</button></div><textarea id="sandboxCode" spellcheck="false" aria-label="Sandbox Java source"></textarea><div class="clipboard-notice" hidden></div><div class="actions"><button class="primary" id="sandboxRun">▶ Run code</button><label class="space-toggle"><input id="spacesVisible" type="checkbox"> Show spaces as ·</label></div><div class="caption">OUTPUT</div><div class="screen" id="sandboxExtraOutput"></div><div id="sandboxExtraError" class="muted"></div></div>';
-  panel.querySelectorAll('[data-code]').forEach(b=>b.onclick=()=>{ $('sandboxCode').value=exampleCode(b.dataset.code);runExtra()});
-  blockEditorClipboard($('sandboxCode'));$('sandboxRun').onclick=runExtra;$('spacesVisible').onchange=runExtra;$('sandboxCode').addEventListener('input',()=>resetTrace($('sandboxCode').value));$('sandboxCode').value=exampleCode('aligned');runExtra();return;
+// Each mode keeps its own DOM and trace. Switching tabs never erases typed code or selections.
+const sandboxTraces=Object.create(null);
+function currentPanel(){return document.getElementById('sandboxPanel-'+state.sandboxMode)}
+function buildSandboxPanel(mode){
+ const panel=document.createElement('div');panel.className='sandbox-mode-panel';panel.id='sandboxPanel-'+mode;
+ const typed=mode==='typed',spaces=mode==='spaces';
+ if(typed){
+  panel.innerHTML=`<div class="bar"><h3>Write and experiment with Java</h3><span class="badge">No penalties</span></div>
+  <p class="muted">Edit Java code and watch the output update. Run code also refreshes the result.</p>
+  <div class="actions sandbox-examples"><button data-code="triangle">Triangle</button><button data-code="aligned">Right-aligned triangle</button><button data-code="checker">Checkerboard</button><button data-code="blank">Blank editor</button></div>
+  <textarea id="sandboxCode" spellcheck="false" autocorrect="off" autocomplete="off" autocapitalize="off" aria-label="Sandbox Java source"></textarea><div class="clipboard-notice" hidden></div>
+  <div class="actions"><button class="primary" id="sandboxRun">▶ Run code</button></div>
+  <div class="caption code-preview-label">EXECUTING JAVA · CURRENT STATEMENT</div><pre id="stepSource" class="code step-source"></pre>`;
+  $('sandboxExtras').append(panel);
+  panel.querySelectorAll('[data-code]').forEach(b=>b.onclick=()=>{$('sandboxCode').value=exampleCode(b.dataset.code);runExtra()});
+  blockEditorClipboard($('sandboxCode'));
+  $('sandboxRun').onclick=runExtra;
+  $('sandboxCode').addEventListener('input',runExtra);
+  $('sandboxCode').value=exampleCode('aligned');
+ }else{
+  panel.innerHTML=`<div class="bar"><h3>${spaces?'Two inner loops':'If/else inside nested loops'}</h3><span class="badge">Guided experiment</span></div>
+  <p class="muted">${spaces?'The first inner loop prints spaces; the second prints characters.':'Test a condition to decide which character is printed at each position.'}</p>
+  <div class="extraControls"></div><div class="caption code-preview-label">EXECUTING JAVA · CURRENT STATEMENT</div><pre class="code sandboxExtraCode"></pre>`;
+  const controls=spaces?[
+    ['Rows',['3','4','5'],'5'],['Space loop bound',['space <= 5 - row','space <= row','space < row'],'space <= 5 - row'],
+    ['Character loop bound',['col <= 2 * row - 1','col <= row','col <= 5'],'col <= row'],['Print',['"*"','"#"','row'],'"*"']
+  ]:[
+    ['Rows',['3','4','5'],'4'],['Columns',['4','5','6'],'6'],
+    ['If condition',['(row + col) % 2 == 0','row % 2 == 0','col % 2 == 0','row == col'],'(row + col) % 2 == 0'],
+    ['If true',['"#"','"*"','"."'],'"#"'],['Otherwise',['"."','" "','"#"'],'"."']
+  ];
+  $('sandboxExtras').append(panel);
+  panel.querySelector('.extraControls').innerHTML=controls.map(([label,opts,value])=>'<label class="sandbox-choice">'+escape(label)+select(opts,value,label)+'</label>').join('');
+  panel.querySelectorAll('select').forEach(s=>s.onchange=runExtra);
  }
- const spaces=mode==='spaces';
- panel.innerHTML='<div class="tutorial-grid"><div class="card"><div class="bar"><h3>'+(spaces?'Two inner loops':'If/else inside nested loops')+'</h3><span class="badge">Guided experiment</span></div><p class="muted">'+(spaces?'The first inner loop prints leading spaces. The second prints characters.':'Try different conditions to decide which character appears at each position.')+'</p><div id="extraControls"></div><div class="caption">GENERATED JAVA</div><pre id="sandboxExtraCode" class="code"></pre></div><div class="card"><div class="bar"><h3>Live output</h3><span class="badge">No penalties</span></div><label class="space-toggle"><input id="spacesVisible" type="checkbox"> Show spaces as ·</label><div class="screen" id="sandboxExtraOutput"></div><div id="sandboxExtraError" class="feedback"></div></div></div>';
- const controls=spaces?[
-  ['Rows',['3','4','5'],'5'],['Space loop bound',['space <= 5 - row','space <= row','space < row'],'space <= 5 - row'],['Character loop bound',['col <= 2 * row - 1','col <= row','col <= 5'],'col <= row'],['Print',['"*"','"#"','row'],'"*"']
- ]:[
-  ['Rows',['3','4','5'],'4'],['Columns',['4','5','6'],'6'],['If condition',['(row + col) % 2 == 0','row % 2 == 0','col % 2 == 0','row == col'],'(row + col) % 2 == 0'],['If true',['"#"','"*"','"."'],'"#"'],['Otherwise',['"."','" "','"#"'],'"."']
- ];
- $('extraControls').innerHTML=controls.map(([label,opts,value])=>'<label class="sandbox-choice">'+escape(label)+select(opts,value,label)+'</label>').join('');
- panel.querySelectorAll('select').forEach(s=>s.onchange=runExtra);$('spacesVisible').onchange=runExtra;runExtra();
+ return panel;
+}
+function showSandboxMode(mode){
+ if(!['basic','spaces','conditionals','typed'].includes(mode))return;
+ if(state.sandboxMode&&tutorial.dataset.ready==='yes'&&traceSource){
+  sandboxTraces[state.sandboxMode]={source:traceSource,steps:traceSteps,index:traceIndex,error:traceError,final:traceFinalOutput};
+ }
+ state.sandboxMode=mode;
+ tutorial.querySelectorAll('[data-mode]').forEach(b=>{const active=b.dataset.mode===mode;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))});
+ $('basicSandbox').classList.toggle('hidden',mode!=='basic');
+ if(mode!=='basic'&&!document.getElementById('sandboxPanel-'+mode))buildSandboxPanel(mode);
+ $('sandboxExtras').querySelectorAll('.sandbox-mode-panel').forEach(p=>p.classList.toggle('hidden',p.id!=='sandboxPanel-'+mode));
+ if(sandboxTraces[mode]){
+  const trace=sandboxTraces[mode];traceSource=trace.source;traceSteps=trace.steps;traceIndex=trace.index;traceError=trace.error;traceFinalOutput=trace.final;
+  drawTrace();
+ }else if(mode==='basic')runSandbox();else runExtra();
 }
 function exampleCode(kind){
  if(kind==='blank')return '// Try creating a pattern using nested loops.\n\n';
@@ -297,57 +366,57 @@ function exampleCode(kind){
  return 'for (int row = 1; row <= 5; row++) {\n    for (int col = 1; col <= row; col++) {\n        System.out.print("*");\n    }\n    System.out.println();\n}';
 }
 function runExtra(){
+ const panel=currentPanel();if(!panel)return;
  let source='';
- if(state.sandboxMode==='typed')source=$('sandboxCode').value;
+ if(state.sandboxMode==='typed')source=panel.querySelector('#sandboxCode').value;
  else{
-  const a=[...$('extraControls').querySelectorAll('select')].map(s=>s.value);
-  source=state.sandboxMode==='spaces'?'for (int row = 1; row <= '+a[0]+'; row++) {\n    for (int space = 1; '+a[1]+'; space++) {\n        System.out.print(" ");\n    }\n    for (int col = 1; '+a[2]+'; col++) {\n        System.out.print('+a[3]+');\n    }\n    System.out.println();\n}':
-  'for (int row = 1; row <= '+a[0]+'; row++) {\n    for (int col = 1; col <= '+a[1]+'; col++) {\n        if ('+a[2]+') {\n            System.out.print('+a[3]+');\n        } else {\n            System.out.print('+a[4]+');\n        }\n    }\n    System.out.println();\n}';
-  $('sandboxExtraCode').textContent=source;
+  const a=[...panel.querySelectorAll('.extraControls select')].map(s=>s.value);
+  source=state.sandboxMode==='spaces'?
+   'for (int row = 1; row <= '+a[0]+'; row++) {\n    for (int space = 1; '+a[1]+'; space++) {\n        System.out.print(" ");\n    }\n    for (int col = 1; '+a[2]+'; col++) {\n        System.out.print('+a[3]+');\n    }\n    System.out.println();\n}':
+   'for (int row = 1; row <= '+a[0]+'; row++) {\n    for (int col = 1; col <= '+a[1]+'; col++) {\n        if ('+a[2]+') {\n            System.out.print('+a[3]+');\n        } else {\n            System.out.print('+a[4]+');\n        }\n    }\n    System.out.println();\n}';
  }
- try{const out=LoopEngine.execute(source);$('sandboxExtraOutput').textContent=$('spacesVisible').checked?out.replace(/ /g,'·'):out;$('sandboxExtraError').textContent='Experiment freely. There are no attempts or penalties here.'}
- catch(e){$('sandboxExtraOutput').textContent='[Code error]';$('sandboxExtraError').textContent=e.message}
  resetTrace(source);
 }
-let traceSteps=[],traceIndex=-1,traceSource='',traceError='';
+let traceSteps=[],traceIndex=-1,traceSource='',traceError='',traceFinalOutput='';
 function resetTrace(source){
- traceSource=source;traceIndex=-1;traceSteps=[];traceError='';
- try{traceSteps=LoopEngine.trace(source).steps}catch(e){traceError=e.message}
+ traceSource=source;traceIndex=-1;traceSteps=[];traceError='';traceFinalOutput='';
+ try{const trace=LoopEngine.trace(source);traceSteps=trace.steps;traceFinalOutput=trace.output}
+ catch(e){traceError=e.message}
  drawTrace();
 }
-function dockTrace(){
- const basic=state.sandboxMode==='basic';
- const grid=basic?tutorial.querySelector('.tutorial-grid'):state.sandboxMode==='typed'?null:$('sandboxExtras')?.querySelector('.tutorial-grid');
- const left=basic?grid?.children[0]:state.sandboxMode==='typed'?$('sandboxExtras')?.querySelector('.card'):grid?.children[0];
- const right=basic?grid?.children[1]:state.sandboxMode==='typed'?left:grid?.children[1];
- if(!left||!right)return;
- const source=$('stepSourceContainer'),controls=$('sandboxDebugger');
- left.append(source);
- const live=basic?$('sandboxOutput'):$('sandboxExtraOutput');
- // Keep the debugger directly above the live output, not below the full sandbox.
- if(live)live.before(controls);
- if(live && !live.dataset.traceCaption){live.dataset.traceCaption='true';live.before(Object.assign(document.createElement('div'),{className:'caption trace-output-label',textContent:'OUTPUT · FULL RESULT UNTIL STEPPING'}))}
+function sourceMarkup(source,line){
+ return source.split('\n').map((text,i)=>'<div class="step-line'+(line===i+1?' active':'')+'"><span class="step-number">'+(i+1)+'</span><span>'+escape(text||' ')+'</span></div>').join('');
 }
 function drawTrace(){
- if(!$('stepSource'))return;
- dockTrace();
+ if(!$('stepNext'))return;
  const current=traceIndex>=0?traceSteps[traceIndex]:null;
- $('stepSourceContainer').classList.toggle('hidden',traceIndex<0);
- $('stepSource').innerHTML=traceSource.split('\n').map((line,i)=>'<div class="step-line'+(current?.line===i+1?' active':'')+'"><span class="step-number">'+(i+1)+'</span>'+escape(line||' ')+'</div>').join('');
+ const highlight=current?.line||-1;
+ $('basicSandbox').querySelectorAll('[data-source-line]').forEach(el=>el.classList.toggle('active',state.sandboxMode==='basic'&&Number(el.dataset.sourceLine)===highlight));
+ if(state.sandboxMode!=='basic'){
+  const panel=currentPanel(),source=panel?.querySelector('.sandboxExtraCode, #stepSource');
+  if(source)source.innerHTML=sourceMarkup(traceSource,highlight);
+ }
  const vars=current?.variables||{};
  $('stepVariables').innerHTML=Object.keys(vars).length?Object.entries(vars).map(([key,value])=>'<span class="step-variable"><strong>'+escape(key)+'</strong> = '+escape(value)+'</span>').join(''):'<span class="muted">No loop variables initialized yet.</span>';
- const showSpaces=$('spacesVisible')?.checked;
- const output=state.sandboxMode==='basic'?$('sandboxOutput'):$('sandboxExtraOutput');
- if(output && traceIndex>=0)output.textContent=showSpaces?current.output.replace(/ /g,'·'):current.output;
- const caption=output?.previousElementSibling;
- if(caption?.classList.contains('trace-output-label'))caption.textContent=traceIndex>=0?'OUTPUT · THROUGH CURRENT STEP':'OUTPUT · FULL RESULT';
+ let shown=traceIndex<0||traceIndex===traceSteps.length-1?traceFinalOutput:current?.output||'';
+ $('sandboxOutput').textContent=traceError?'[Code error]':$('spacesVisible').checked?shown.replace(/ /g,'·'):shown;
+ if(!traceError&&!shown&&traceIndex<0)$('sandboxOutput').textContent='(nothing printed)';
+ $('stepOutputLabel').textContent=traceIndex<0?'LIVE OUTPUT · FULL RESULT':'LIVE OUTPUT · THROUGH CURRENT STEP';
  $('stepAction').textContent=traceError?'Cannot trace: '+traceError:current?current.action:traceSteps.length?'Ready. Click Next step to begin.':'No executable statements yet.';
  $('stepCount').textContent=(traceIndex+1)+' / '+traceSteps.length+' steps';
- $('stepBack').disabled=traceIndex<0;$('stepReset').disabled=traceIndex<0;$('stepNext').disabled=!!traceError||traceIndex>=traceSteps.length-1;$('stepEnd').disabled=!!traceError||traceIndex>=traceSteps.length-1;
+ $('stepBack').disabled=traceIndex<0;$('stepReset').disabled=traceIndex<0;
+ $('stepNext').disabled=!!traceError||traceIndex>=traceSteps.length-1;
+ $('stepEnd').disabled=!!traceError||traceIndex>=traceSteps.length-1;
+ $('sandboxExplanation').textContent=traceError?'Review the Java code or loop bounds, then try again.':
+  state.sandboxMode==='basic'?'The inner loop starts over each time the outer loop advances.':
+  state.sandboxMode==='spaces'?'The space loop and character loop execute in sequence on each row.':
+  state.sandboxMode==='conditionals'?'The if/else condition is checked for each character.':
+  'The highlighted line and values correspond to the Java code above.';
+ sandboxTraces[state.sandboxMode]={source:traceSource,steps:traceSteps,index:traceIndex,error:traceError,final:traceFinalOutput};
 }
 function gameView(showTutorial){
  document.body.classList.toggle('tutorial-mode',showTutorial);
- if(showTutorial)tutorialPage();
+ if(showTutorial){tutorialPage();$('begin').textContent=state.started?'← Back to challenges':'Start the 27 challenges →';}
 }
 function render(){
  refreshTeacherPreview();
@@ -451,7 +520,7 @@ function reset(){
 const tutorialButton=document.createElement('button');
 tutorialButton.id='tutorialButton';tutorialButton.textContent='Tutorial / Sandbox';
 document.querySelector('header').append(tutorialButton);
-tutorialButton.onclick=()=>{state.tutorial=true;save();render();window.scrollTo(0,0)};
+tutorialButton.onclick=()=>{if(state.tutorial){document.getElementById('tutorial')?.scrollIntoView({behavior:'smooth',block:'start'});return;}state.tutorial=true;save();render();window.scrollTo(0,0)};
 const identityBar=document.createElement('div');identityBar.className='student-tools';
 identityBar.innerHTML='<div class="identity-fields"><label for="studentName">First name and last initial<input id="studentName" autocomplete="off" maxlength="48" placeholder="Example: Jordan P"></label></div><div class="tool-actions"><button id="downloadSave">Save progress</button><button id="loadSave">Load progress</button><input id="loadFile" type="file" accept=".json,application/json" hidden><button id="reportPdf" class="primary">Export PDF report</button></div><div id="exportStatus" class="export-status" aria-live="polite"></div>';
 document.querySelector('header').after(identityBar);

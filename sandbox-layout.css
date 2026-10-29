@@ -1,0 +1,41 @@
+/* One consistent tutorial layout for all four sandbox modes. */
+.tutorial-view #sandboxLayout { display:grid; grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr); gap:18px; align-items:start; margin-top:16px; }
+.tutorial-view .tutorial-intro { max-width:880px; }
+.tutorial-view .sandbox-observer-card { position:sticky; top:12px; }
+.tutorial-view .sandbox-editor-card,.tutorial-view .sandbox-observer-card { min-width:0; }
+.tutorial-view .sandbox-tabs { margin-bottom:10px; }
+.tutorial-view .sandbox-mode-panel.hidden { display:none !important; }
+.tutorial-view .sandbox-mode-panel .bar { flex-wrap:wrap; }
+.tutorial-view .sandbox-code { margin-top:14px; line-height:2.55; }
+.tutorial-view .sandbox-code .line { padding:2px 4px; margin-left:-4px; }
+.tutorial-view .sandbox-code .line.active,
+.tutorial-view .step-line.active { background:rgba(189,250,115,.14); outline:1px solid #bdfa73; border-radius:5px; }
+.tutorial-view .step-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:10px 0 10px; }
+.tutorial-view .step-actions button { padding:10px 6px; font-size:12px; white-space:nowrap; }
+.tutorial-view #stepOutputLabel { margin-top:15px; margin-bottom:3px; }
+.tutorial-view #sandboxOutput { min-height:180px; max-height:350px; margin-top:0; font-size:17px; }
+.tutorial-view .variable-caption { margin:17px 0 10px; }
+.tutorial-view .step-variables { display:flex; flex-wrap:wrap; gap:8px; align-items:center; min-height:35px; }
+.tutorial-view .step-variable { display:inline-block; background:#25455e; border:1px solid #567a98; border-radius:7px; padding:6px 10px; font:13px Consolas,'Courier New',monospace; }
+.tutorial-view .step-variable strong { color:#bdfa73; }
+.tutorial-view #stepAction { min-height:42px; margin-top:12px; }
+.tutorial-view .sandbox-explanation { margin-top:13px; font-size:13px; }
+.tutorial-view .tutorial-notes { margin-top:16px; font-size:13px; line-height:1.65; }
+.tutorial-view .sandbox-return { justify-content:flex-end; margin-top:20px; }
+.tutorial-view .space-toggle { margin:9px 0 11px; }
+.tutorial-view #sandboxCode { min-height:230px; height:260px; margin-top:12px; }
+.tutorial-view .code-preview-label { margin-top:22px; }
+.tutorial-view .step-source,.tutorial-view .sandboxExtraCode { white-space:pre; font:13px/1.55 Consolas,'Courier New',monospace; margin-top:8px; padding:11px 7px; overflow:auto; }
+.tutorial-view .step-line { display:flex; align-items:baseline; white-space:pre; min-height:20px; padding:1px 5px; }
+.tutorial-view .step-number { flex:0 0 30px; color:#95a8bc; user-select:none; }
+.tutorial-view .sandbox-choice select { min-width:0; }
+.tutorial-view .sandbox-examples { margin-bottom:11px; }
+@media (max-width:880px) {
+ .tutorial-view #sandboxLayout { grid-template-columns:1fr; }
+ .tutorial-view .sandbox-observer-card { position:static; }
+}
+@media (max-width:540px) {
+ .tutorial-view .step-actions button { font-size:11px; }
+ .tutorial-view #sandboxLayout .card { padding:14px; }
+ .tutorial-view #sandboxCode { height:230px; }
+}

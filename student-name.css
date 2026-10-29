@@ -33,3 +33,11 @@ body .student-tools .identity-fields #studentName {
 .inline-step-source .step-source{max-height:300px;min-height:0;overflow:auto}
 .integrated-tracer .step-variables{margin:8px 0}
 .integrated-tracer #stepCount{float:right}
+
+/* Step buttons sit above the actual live-output box, details below it. */
+.step-toolbar{margin:8px 0 10px;padding:8px 10px;border:1px solid #36516b;border-radius:9px;background:rgba(21,39,58,.75)}
+.step-toolbar .caption{margin:0 0 5px}
+.step-toolbar .step-actions{display:flex;gap:6px;flex-wrap:wrap;margin:0}
+.step-toolbar .step-actions button{font-size:12px;padding:7px 10px}
+#sandboxDebugger{margin-top:9px;padding-top:8px;border-top:1px solid #36516b}
+#sandboxDebugger .step-variables{min-height:0;margin:7px 0}
