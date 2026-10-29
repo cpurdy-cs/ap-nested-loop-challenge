@@ -322,8 +322,10 @@ function dockTrace(){
  const right=basic?grid?.children[1]:state.sandboxMode==='typed'?left:grid?.children[1];
  if(!left||!right)return;
  const source=$('stepSourceContainer'),controls=$('sandboxDebugger');
- left.append(source);right.append(controls);
+ left.append(source);
  const live=basic?$('sandboxOutput'):$('sandboxExtraOutput');
+ // Keep the debugger directly above the live output, not below the full sandbox.
+ if(live)live.before(controls);
  if(live && !live.dataset.traceCaption){live.dataset.traceCaption='true';live.before(Object.assign(document.createElement('div'),{className:'caption trace-output-label',textContent:'OUTPUT · FULL RESULT UNTIL STEPPING'}))}
 }
 function drawTrace(){
