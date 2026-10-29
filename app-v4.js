@@ -244,21 +244,27 @@ function tutorialPage(){
  const tabs=document.createElement('div');tabs.className='sandbox-tabs';tabs.innerHTML='<button data-mode="basic">Basic loops</button><button data-mode="spaces">Two inner loops + spaces</button><button data-mode="conditionals">Conditionals</button><button data-mode="typed">Type Java</button>';
  tutorial.querySelector('.tutorial-grid').before(tabs);
  const extras=document.createElement('div');extras.id='sandboxExtras';tutorial.querySelector('.tutorial-grid').after(extras);
+ const debuggerPanel=document.createElement('div');debuggerPanel.id='sandboxDebugger';debuggerPanel.className='integrated-tracer';
+ debuggerPanel.innerHTML='<div class="caption">STEP THROUGH EXECUTION <span id="stepCount" aria-live="polite"></span></div><div class="step-actions"><button id="stepReset">↺ Restart</button><button id="stepBack">← Back</button><button class="primary" id="stepNext">Next step →</button><button id="stepEnd">Run to end</button></div><div class="caption">LOOP VARIABLES</div><div id="stepVariables" class="step-variables"></div><div id="stepAction" class="feedback" aria-live="polite"></div>';
+ const sourcePanel=document.createElement('div');sourcePanel.id='stepSourceContainer';sourcePanel.className='inline-step-source hidden';sourcePanel.innerHTML='<div class="caption">EXECUTING JAVA · CURRENT LINE</div><pre id="stepSource" class="step-source"></pre>';
+ tutorial.append(debuggerPanel,sourcePanel);
+ $('stepReset').onclick=()=>{traceIndex=-1;drawTrace()};$('stepBack').onclick=()=>{traceIndex=Math.max(-1,traceIndex-1);drawTrace()};
+ $('stepNext').onclick=()=>{traceIndex=Math.min(traceSteps.length-1,traceIndex+1);drawTrace()};$('stepEnd').onclick=()=>{traceIndex=traceSteps.length-1;drawTrace()};
  // Keep the return button outside the basic-only grid so all sandbox modes can exit.
  tutorial.append($('begin').parentElement);
  tabs.querySelectorAll('button').forEach(b=>b.onclick=()=>showSandboxMode(b.dataset.mode));
  showSandboxMode(state.sandboxMode);
- runSandbox();
 }
 function syncSandboxDirections(){
  const get=id=>$(id).querySelector('select');
- directionOptions(get('sandboxOuterStart'),get('sandboxOuterCond'),get('sandboxOuterUp'),'row');
- directionOptions(get('sandboxInnerStart'),get('sandboxInnerCond'),get('sandboxInnerUp'),'col');
+ directionOptions(get('sandboxOuterStart'),get('sandboxOuterCond'),get('sandboxOuterUp'),'row',outer);
+ directionOptions(get('sandboxInnerStart'),get('sandboxInnerCond'),get('sandboxInnerUp'),'col',inner);
 }
 function sandboxSource(){const ids=['sandboxOuterStart','sandboxOuterCond','sandboxOuterUp','sandboxInnerStart','sandboxInnerCond','sandboxInnerUp','sandboxPrint'];const a=ids.map(id=>$(id).querySelector('select').value);return 'for (int row = '+a[0]+'; '+a[1]+'; '+a[2]+') {\n    for (int col = '+a[3]+'; '+a[4]+'; '+a[5]+') {\n        System.out.print('+a[6]+');\n    }\n    System.out.println();\n}'}
 function runSandbox(){
  try{$('sandboxOutput').textContent=LoopEngine.execute(sandboxSource())||'(nothing printed)';$('sandboxExplanation').textContent='The outer loop repeats each row. The inner loop runs from the beginning for every row. Experiment freely!'}
  catch(e){$('sandboxOutput').textContent='[Loop stopped]';$('sandboxExplanation').textContent=e.message+' Try a different condition or increment.'}
+ if(state.sandboxMode==='basic')resetTrace(sandboxSource());
 }
 function setPreset(which){
  const a=which==='triangle'?['1','row <= 5','row++','1','col <= row','col++','"*"']:which==='numbers'?['1','row <= 5','row++','1','col <= row','col++','col']:which==='odd'?['1','row <= 5','row++','1','col <= 2 * row - 1','col++','"#"']:['1','row <= 3','row++','1','col <= 5','col++','"*"'];
@@ -268,11 +274,11 @@ function showSandboxMode(mode){
  state.sandboxMode=mode;
  tutorial.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
  tutorial.querySelector('.tutorial-grid').classList.toggle('hidden',mode!=='basic');
- const panel=$('sandboxExtras');panel.innerHTML='';if(mode==='basic')return;
+ const panel=$('sandboxExtras');panel.innerHTML='';if(mode==='basic'){runSandbox();return}
  if(mode==='typed'){
   panel.innerHTML='<div class="card"><div class="bar"><h3>Write and experiment with Java</h3><span class="badge">No penalties</span></div><p class="muted">Edit the code freely. Use Run to see its output. These are learning examples, not solutions to the final challenges.</p><div class="actions"><button data-code="triangle">Triangle</button><button data-code="aligned">Right-aligned triangle</button><button data-code="checker">Checkerboard</button><button data-code="blank">Blank editor</button></div><textarea id="sandboxCode" spellcheck="false" aria-label="Sandbox Java source"></textarea><div class="clipboard-notice" hidden></div><div class="actions"><button class="primary" id="sandboxRun">▶ Run code</button><label class="space-toggle"><input id="spacesVisible" type="checkbox"> Show spaces as ·</label></div><div class="caption">OUTPUT</div><div class="screen" id="sandboxExtraOutput"></div><div id="sandboxExtraError" class="muted"></div></div>';
   panel.querySelectorAll('[data-code]').forEach(b=>b.onclick=()=>{ $('sandboxCode').value=exampleCode(b.dataset.code);runExtra()});
-  blockEditorClipboard($('sandboxCode'));$('sandboxRun').onclick=runExtra;$('spacesVisible').onchange=runExtra;$('sandboxCode').value=exampleCode('aligned');runExtra();return;
+  blockEditorClipboard($('sandboxCode'));$('sandboxRun').onclick=runExtra;$('spacesVisible').onchange=runExtra;$('sandboxCode').addEventListener('input',()=>resetTrace($('sandboxCode').value));$('sandboxCode').value=exampleCode('aligned');runExtra();return;
  }
  const spaces=mode==='spaces';
  panel.innerHTML='<div class="tutorial-grid"><div class="card"><div class="bar"><h3>'+(spaces?'Two inner loops':'If/else inside nested loops')+'</h3><span class="badge">Guided experiment</span></div><p class="muted">'+(spaces?'The first inner loop prints leading spaces. The second prints characters.':'Try different conditions to decide which character appears at each position.')+'</p><div id="extraControls"></div><div class="caption">GENERATED JAVA</div><pre id="sandboxExtraCode" class="code"></pre></div><div class="card"><div class="bar"><h3>Live output</h3><span class="badge">No penalties</span></div><label class="space-toggle"><input id="spacesVisible" type="checkbox"> Show spaces as ·</label><div class="screen" id="sandboxExtraOutput"></div><div id="sandboxExtraError" class="feedback"></div></div></div>';
@@ -301,6 +307,41 @@ function runExtra(){
  }
  try{const out=LoopEngine.execute(source);$('sandboxExtraOutput').textContent=$('spacesVisible').checked?out.replace(/ /g,'·'):out;$('sandboxExtraError').textContent='Experiment freely. There are no attempts or penalties here.'}
  catch(e){$('sandboxExtraOutput').textContent='[Code error]';$('sandboxExtraError').textContent=e.message}
+ resetTrace(source);
+}
+let traceSteps=[],traceIndex=-1,traceSource='',traceError='';
+function resetTrace(source){
+ traceSource=source;traceIndex=-1;traceSteps=[];traceError='';
+ try{traceSteps=LoopEngine.trace(source).steps}catch(e){traceError=e.message}
+ drawTrace();
+}
+function dockTrace(){
+ const basic=state.sandboxMode==='basic';
+ const grid=basic?tutorial.querySelector('.tutorial-grid'):state.sandboxMode==='typed'?null:$('sandboxExtras')?.querySelector('.tutorial-grid');
+ const left=basic?grid?.children[0]:state.sandboxMode==='typed'?$('sandboxExtras')?.querySelector('.card'):grid?.children[0];
+ const right=basic?grid?.children[1]:state.sandboxMode==='typed'?left:grid?.children[1];
+ if(!left||!right)return;
+ const source=$('stepSourceContainer'),controls=$('sandboxDebugger');
+ left.append(source);right.append(controls);
+ const live=basic?$('sandboxOutput'):$('sandboxExtraOutput');
+ if(live && !live.dataset.traceCaption){live.dataset.traceCaption='true';live.before(Object.assign(document.createElement('div'),{className:'caption trace-output-label',textContent:'OUTPUT · FULL RESULT UNTIL STEPPING'}))}
+}
+function drawTrace(){
+ if(!$('stepSource'))return;
+ dockTrace();
+ const current=traceIndex>=0?traceSteps[traceIndex]:null;
+ $('stepSourceContainer').classList.toggle('hidden',traceIndex<0);
+ $('stepSource').innerHTML=traceSource.split('\n').map((line,i)=>'<div class="step-line'+(current?.line===i+1?' active':'')+'"><span class="step-number">'+(i+1)+'</span>'+escape(line||' ')+'</div>').join('');
+ const vars=current?.variables||{};
+ $('stepVariables').innerHTML=Object.keys(vars).length?Object.entries(vars).map(([key,value])=>'<span class="step-variable"><strong>'+escape(key)+'</strong> = '+escape(value)+'</span>').join(''):'<span class="muted">No loop variables initialized yet.</span>';
+ const showSpaces=$('spacesVisible')?.checked;
+ const output=state.sandboxMode==='basic'?$('sandboxOutput'):$('sandboxExtraOutput');
+ if(output && traceIndex>=0)output.textContent=showSpaces?current.output.replace(/ /g,'·'):current.output;
+ const caption=output?.previousElementSibling;
+ if(caption?.classList.contains('trace-output-label'))caption.textContent=traceIndex>=0?'OUTPUT · THROUGH CURRENT STEP':'OUTPUT · FULL RESULT';
+ $('stepAction').textContent=traceError?'Cannot trace: '+traceError:current?current.action:traceSteps.length?'Ready. Click Next step to begin.':'No executable statements yet.';
+ $('stepCount').textContent=(traceIndex+1)+' / '+traceSteps.length+' steps';
+ $('stepBack').disabled=traceIndex<0;$('stepReset').disabled=traceIndex<0;$('stepNext').disabled=!!traceError||traceIndex>=traceSteps.length-1;$('stepEnd').disabled=!!traceError||traceIndex>=traceSteps.length-1;
 }
 function gameView(showTutorial){
  document.body.classList.toggle('tutorial-mode',showTutorial);

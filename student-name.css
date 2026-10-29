@@ -11,3 +11,25 @@ body .student-tools .identity-fields #studentName {
     grid-template-columns: minmax(200px, 1fr);
   }
 }
+.step-debugger{margin-top:20px}
+.step-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:15px 0 20px}
+.step-actions #stepCount{margin-left:auto;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.step-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:20px}
+.step-source{background:#081525;border:1px solid #36516b;border-radius:10px;padding:12px 0;overflow:auto;font:13px/1.85 Consolas,monospace;min-height:180px;margin:0;white-space:pre}
+.step-line{padding:0 12px;border-left:4px solid transparent}
+.step-line.active{background:#31516b;border-left-color:#bdfa73;color:#fff}
+.step-number{display:inline-block;width:27px;margin-right:12px;color:#83a1bc;user-select:none}
+.step-variables{min-height:75px;display:flex;align-content:flex-start;flex-wrap:wrap;gap:7px;margin-bottom:17px}
+.step-variable{background:#28445d;border:1px solid #50708b;border-radius:7px;padding:7px 10px;font:14px Consolas,monospace}
+.step-variable strong{color:#bdfa73}
+.step-output{min-height:115px;margin:0 0 12px;font-size:15px}
+@media(max-width:720px){.step-grid{grid-template-columns:1fr}.step-actions #stepCount{margin-left:0;width:100%}}
+/* Integrated sandbox debugger: controls are docked beside the sandbox output. */
+.integrated-tracer{margin-top:16px;padding-top:14px;border-top:1px solid #36516b}
+.integrated-tracer .step-actions{display:flex;gap:7px;flex-wrap:wrap;margin:9px 0 15px}
+.integrated-tracer .step-actions button{font-size:12px;padding:8px 10px}
+.inline-step-source{margin-top:15px;border-top:1px solid #36516b;padding-top:12px}
+.inline-step-source.hidden{display:none}
+.inline-step-source .step-source{max-height:300px;min-height:0;overflow:auto}
+.integrated-tracer .step-variables{margin:8px 0}
+.integrated-tracer #stepCount{float:right}
